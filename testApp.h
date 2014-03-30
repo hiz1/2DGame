@@ -35,14 +35,10 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
   private:
-//    ofImage chara;
-
-    bool up, down, left, right;
     hzCursor cursor;
-
     ofxTrueTypeFontUC font;
-
-
     lua_State* L;
-
+    lua_State* event;
+    int eventThreadIdx;
+    bool eventRunning;
 };

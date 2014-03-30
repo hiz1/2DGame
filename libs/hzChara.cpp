@@ -1,51 +1,38 @@
 #include "hzChara.h"
 #include "testApp.h"
+#include "libs/hzCommonUtil.h"
 
-
-hzChara::hzChara(ofPtr<hzSprite> sprite, float x, float y, string script, lua_State *L) : hzCharaBase(sprite, x, y)
+hzChara::hzChara(ofPtr<hzSprite> sprite, float x, float y, string script, string eventScript, lua_State *L) : hzCharaBase(sprite, x, y)
 {
   // スレッドを生成し、グローバルテーブルに積む
   this->L = L;
-  lua_settop(L,1);
-  lua_getglobal(L, "addThread");
-  co = lua_newthread(L);
-  lua_call(L, 1, 1);
-  threadIdx = lua_tonumber(L, -1);
-  lua_settop(L,1);
-
-  ofLogNotice() << "add thread:" << threadIdx;
-
-  lua_getglobal(co, script.c_str());
-
+  threadIdx = addLuaThread(this->L, &co, script);
+  this->eventScript = eventScript;
 }
 
 hzChara::~hzChara()
 {
-  deleteThread();
+  deleteLuaThread(L, &co, threadIdx);
 }
 
-void hzChara::deleteThread()
-{
-  ofLogNotice() << "delete start thread:" << threadIdx;
-  lua_settop(L,1);
-  lua_getglobal(L, "removeThread");
-  lua_pushnumber(L, threadIdx);
-  lua_call(L, 1, 0);
-  lua_settop(L,1);
-  ofLogNotice() << "delete end   thread:" << threadIdx;
-  delete co;
 
-  co = NULL;
-}
 
-void hzChara::update()
+void hzChara::update(bool eventRunning)
 {
+  hzCharaBase::update(eventRunning);
+  if(eventRunning) return;
+
   currentChara = this;
   if(co != NULL) {
     lua_resume(co, NULL, 0);
-    if (lua_type(co, -1) == LUA_TNIL) {
-      deleteThread();
+    if (lua_type(co, -1) == LUA_TSTRING) {
+      deleteLuaThread(L, &co, threadIdx);
     }
   }
-  hzCharaBase::update();
+
+}
+
+string hzChara::getEventScript()
+{
+  return eventScript;
 }

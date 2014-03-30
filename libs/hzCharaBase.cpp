@@ -43,8 +43,13 @@ void hzCharaBase::move(float dx, float dy)
 
 }
 
-void hzCharaBase::update()
+void hzCharaBase::update(bool eventRunning)
 {
   if(ofGetFrameNum() % 10 == 0)xi ++;
   xi = ofWrap(xi, 0, 2);
+}
+
+ofPoint hzCharaBase::getPos()
+{
+  return pos;
 }

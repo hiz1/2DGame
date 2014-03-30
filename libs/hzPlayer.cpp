@@ -11,9 +11,10 @@ hzPlayer::~hzPlayer()
 {
 }
 
-void hzPlayer::update()
+void hzPlayer::update(bool eventRunning)
 {
-  hzCharaBase::update();
+  hzCharaBase::update(eventRunning);
+  if(eventRunning) return;
 
   if(cursor->isUp()   ) {
       move(0, -5);
@@ -28,4 +29,6 @@ void hzPlayer::update()
   if(cursor->isLeft() ) {
       move(-5, 0);
   }
+
+
 }

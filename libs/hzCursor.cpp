@@ -3,6 +3,7 @@
 hzCursor::hzCursor()
 {
   left = right = up = down = false;
+  btn1 = btn2 = btn3 = false;
 }
 
 hzCursor::~hzCursor()
@@ -17,6 +18,10 @@ void hzCursor::keyPressed(int key) {
 
   if(key == OF_KEY_RIGHT     ) right = true;
   else if(key == OF_KEY_LEFT ) left  = true;
+
+  if(key == 'z' || key == 'Z') btn1  = true;
+  if(key == 'x' || key == 'X') btn2  = true;
+  if(key == 'c' || key == 'C') btn3  = true;
 }
 
 void hzCursor::keyReleased(int key) {
@@ -25,6 +30,10 @@ void hzCursor::keyReleased(int key) {
 
   if(key == OF_KEY_RIGHT     ) right = false;
   else if(key == OF_KEY_LEFT ) left  = false;
+
+  if(key == 'z' || key == 'Z') btn1  = false;
+  if(key == 'x' || key == 'X') btn2  = false;
+  if(key == 'c' || key == 'C') btn3  = false;
 }
 
 bool hzCursor::isUp() {
@@ -38,4 +47,14 @@ bool hzCursor::isLeft() {
 }
 bool hzCursor::isRight() {
   return right;
+}
+
+bool hzCursor::isBtn1() {
+  return btn1;
+}
+bool hzCursor::isBtn2() {
+  return btn2;
+}
+bool hzCursor::isBtn3() {
+  return btn3;
 }

@@ -13,7 +13,8 @@ class hzCharaBase
     virtual ~hzCharaBase();
     virtual void draw();
     virtual void move(float dx, float dy);
-    virtual void update();
+    virtual void update(bool eventRunning);
+    virtual ofPoint getPos();
   protected:
     ofPtr<hzSprite> sprite;
     ofPoint pos;

@@ -9,7 +9,7 @@ class hzPlayer : public hzCharaBase
   public:
     hzPlayer(ofPtr<hzSprite> sprite, float x, float y, hzCursor *cursor);
     virtual ~hzPlayer();
-    virtual void update();
+    virtual void update(bool eventRunning);
   protected:
   private:
     hzCursor *cursor;

@@ -7,44 +7,7 @@ hzChara *currentChara;
 hzPlayer *player;
 hzTextArea *textArea;
 
-void dumpStack(lua_State* L)
-{
-    int i;
-    //スタックに積まれている数を取得する
-    int stackSize = lua_gettop(L);
-    for( i = stackSize; i >= 1; i-- ) {
-        int type = lua_type(L, i);
-        printf("Stack[%2d-%10s] : ", i, lua_typename(L,type) );
 
-        switch( type ) {
-        case LUA_TNUMBER:
-            //number型
-            printf("%f", lua_tonumber(L, i) );
-            break;
-        case LUA_TBOOLEAN:
-            //boolean型
-            if( lua_toboolean(L, i) ) {
-                printf("true");
-            }else{
-                printf("false");
-            }
-            break;
-        case LUA_TSTRING:
-            //string型
-            printf("%s", lua_tostring(L, i) );
-            break;
-        case LUA_TNIL:
-            //nil
-            break;
-        default:
-            //その他の型
-            printf("%s", lua_typename(L, type));
-            break;
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
 
 int move(lua_State* L)
 {
@@ -87,15 +50,20 @@ void testApp::setup(){
     if(luaL_loadfile(L, "data\\moves.lua") || lua_pcall(L, 0, 0, 0)) {
         perror(lua_tostring(L, -1));
     }
+    if(luaL_loadfile(L, "data\\events.lua") || lua_pcall(L, 0, 0, 0)) {
+        perror(lua_tostring(L, -1));
+    }
+
     //move関数をcmove関数としてLuaに登録
     lua_register(L, "cmove", move);
-
     lua_register(L, "csay", say);
 
 
   // キャラ情報読み込み
   ofxJSONElement json;
   json.open("charas.json");
+
+  eventRunning = false;
 
   for(int i=0;i<json.size();i++) {
     string charachip = json[i]["graphic"]["charachip"].asString();
@@ -109,7 +77,7 @@ void testApp::setup(){
     string eventScript    = json[i]["event"].asString();
 
     ofPtr<hzSprite> sprite(new hzSprite(charachip, width, height, xi, yi));
-    ofPtr<hzChara> chara(new hzChara(sprite,x, y, moveScript, L));
+    ofPtr<hzChara> chara(new hzChara(sprite,x, y, moveScript, eventScript, L));
     charas.push_back(chara);
   }
 
@@ -138,10 +106,31 @@ void testApp::update(){
 	int h = ofGetHeight();
 	if(w != 640 || h != 480) ofSetWindowShape(640, 480);
 
-  player->update();
-
+  player->update(eventRunning);
   for(ofPtr<hzChara> chara : charas) {
-    chara->update();
+    chara->update(eventRunning);
+  }
+
+
+  // イベント起動
+  if(cursor.isBtn1() && !eventRunning) {
+    for(ofPtr<hzChara> chara : charas) {
+      if(chara->getPos().distance(player->getPos()) < 48) {
+        ofLog() << chara->getEventScript() << endl;
+        eventRunning = true;
+        eventThreadIdx = addLuaThread(L, &event, chara->getEventScript());
+      }
+    }
+  }
+
+  if(eventRunning) {
+    if(event != NULL) {
+      lua_resume(event, NULL, 0);
+      if (lua_type(event, -1) == LUA_TSTRING) {
+        deleteLuaThread(L, &event, eventThreadIdx);
+        eventRunning = false;
+      }
+    }
   }
 
 }
@@ -162,21 +151,7 @@ void testApp::draw(){
     ofLine(x, 0, x, ofGetHeight());
   }
 
-
-//  ofSetColor(255,255,255);
-//  ofRectRounded(190, 190, 120, 120, 20);
-
-//  font.drawString(createParagraphByArea("私のゲームです。さあ遊びなさい。", ofPoint(14, 14), ofPoint(80, 94, 0)), 200,220);
-
   textArea->draw();
-//  ofRectangle rect = font.getStringBoundingBox(serif, 200, 200);
-//  float sy = rect.y;
-//  rect.y += 200 - sy;
-////  rect.y += font.getLineHeight();
-//  ofSetColor(255,255,255, 50);
-//  ofRect(rect);
-//  ofSetColor(255,255,255);
-//  font.drawString(serif, 200,200 + (200 - sy));
 
   ofSetColor(255,255,255);
   player->draw();

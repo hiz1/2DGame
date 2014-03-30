@@ -8,15 +8,15 @@
 class hzChara : public hzCharaBase
 {
   public:
-    hzChara(ofPtr<hzSprite> sprite, float x, float y, string script, lua_State *L);
+    hzChara(ofPtr<hzSprite> sprite, float x, float y, string script, string eventScript, lua_State *L);
     virtual ~hzChara();
-    void deleteThread();
-    void update();
+    void update(bool eventRunning);
+    string getEventScript();
   protected:
   private:
     lua_State *L;
     lua_State *co;
-    lua_State *event;
+    string eventScript;
     int threadIdx;
 };
 

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "ofMain.h"
+#include "lua.hpp"
 
 using namespace std;
 
@@ -41,5 +42,12 @@ std::string createParagraphByArea(const string &s, const ofPoint &fontSize, cons
 
 // メッシュに法線ベクトルを自動追加する（TRIANGLESを想定）
 void setNormals(ofMesh &mesh);
+
+// Luaのスレッドを作成し、スレッドINDEXを返す
+int addLuaThread(lua_State *L, lua_State **co, string script);
+
+void deleteLuaThread(lua_State *L, lua_State **co,int threadIdx);
+
+void dumpStack(lua_State* L);
 
 #endif /* defined(__Menu__CommonUtil__) */

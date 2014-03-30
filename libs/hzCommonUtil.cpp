@@ -8,6 +8,7 @@
 
 #include "hzCommonUtil.h"
 
+
 // 文字列の長さを全角文字数で数える
 int utf8len(const string &s)
 {
@@ -183,4 +184,69 @@ void setNormals(ofMesh &mesh) {
     }
     mesh.clearNormals();
     mesh.addNormals(norm);
+}
+
+// Luaのスレッドを作成し、スレッドINDEXを返す
+int addLuaThread(lua_State *L, lua_State **co, string script)
+{
+    lua_settop(L,1);
+    lua_getglobal(L, "addThread");
+    *co = lua_newthread(L);
+    lua_call(L, 1, 1);
+    int eventThreadIdx = lua_tonumber(L, -1);
+    lua_settop(L,1);
+    ofLogNotice() << "add thread:" << eventThreadIdx;
+    lua_getglobal(*co, script.c_str());
+    return eventThreadIdx;
+}
+
+void deleteLuaThread(lua_State *L, lua_State **co,int threadIdx)
+{
+  lua_settop(L,1);
+  lua_getglobal(L, "removeThread");
+  lua_pushnumber(L, threadIdx);
+  lua_call(L, 1, 0);
+  lua_settop(L,1);
+  delete *co;
+  *co = NULL;
+  ofLogNotice() << "delete thread :" << threadIdx;
+}
+
+void dumpStack(lua_State* L)
+{
+    int i;
+    //スタックに積まれている数を取得する
+    int stackSize = lua_gettop(L);
+    for( i = stackSize; i >= 1; i-- ) {
+        int type = lua_type(L, i);
+        printf("Stack[%2d-%10s] : ", i, lua_typename(L,type) );
+
+        switch( type ) {
+        case LUA_TNUMBER:
+            //number型
+            printf("%f", lua_tonumber(L, i) );
+            break;
+        case LUA_TBOOLEAN:
+            //boolean型
+            if( lua_toboolean(L, i) ) {
+                printf("true");
+            }else{
+                printf("false");
+            }
+            break;
+        case LUA_TSTRING:
+            //string型
+            printf("%s", lua_tostring(L, i) );
+            break;
+        case LUA_TNIL:
+            //nil
+            break;
+        default:
+            //その他の型
+            printf("%s", lua_typename(L, type));
+            break;
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
